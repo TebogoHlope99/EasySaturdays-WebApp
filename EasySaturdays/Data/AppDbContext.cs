@@ -10,6 +10,7 @@ namespace EasySaturdays.Data
         public DbSet<Campaign> Campaigns { get; set; }
         public DbSet<Donation> Donations { get; set; }
         public DbSet<VolunteerShift> VolunteerShifts { get; set; }
+        public DbSet<RoleChangeRequest> RoleChangeRequests { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

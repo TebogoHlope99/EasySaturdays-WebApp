@@ -153,7 +153,48 @@
 <div class="card shadow-sm border-0 mb-4">
     <div class="card-body">
         <h5 class="fw-bold mb-3">🔄 Role Change Requests</h5>
-        <p class="text-muted mb-0">No pending role change requests.</p>
+
+        @if (ViewBag.PendingRequests.Count == 0)
+        {
+            <p class="text-muted mb-0">No pending role change requests.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table-custom">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Current Role</th>
+                            <th>Requested Role</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var req in ViewBag.PendingRequests)
+                        {
+                            <tr>
+                                <td>@req.User.FirstName @req.User.LastName</td>
+                                <td><span class="badge-role badge-donor">@req.CurrentRole</span></td>
+                                <td><span class="badge-role badge-admin">@req.RequestedRole</span></td>
+                                <td>@req.RequestedAt.ToString("yyyy-MM-dd")</td>
+                                <td>
+                                    <form asp-action="ApproveRoleChange" method="post" style="display:inline;">
+                                        <input type="hidden" name="requestId" value="@req.Id" />
+                                        <button type="submit" class="btn btn-sm btn-success rounded-pill px-3">✅ Approve</button>
+                                    </form>
+                                    <form asp-action="RejectRoleChange" method="post" style="display:inline;">
+                                        <input type="hidden" name="requestId" value="@req.Id" />
+                                        <button type="submit" class="btn btn-sm btn-danger rounded-pill px-3">❌ Reject</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
     </div>
 </div>
 

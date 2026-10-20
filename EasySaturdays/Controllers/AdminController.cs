@@ -36,6 +36,13 @@ namespace EasySaturdays.Controllers
                 .OrderByDescending(s => s.Date)
                 .ToList();
 
+            // LOAD ROLE REQUESTS
+            ViewBag.PendingRequests = _context.RoleChangeRequests
+                .Include(r => r.User)
+                .Where(r => r.Status == "Pending")
+                .OrderByDescending(r => r.RequestedAt)
+                .ToList();
+
             return View(_context.Campaigns.ToList());
         }
 
@@ -96,7 +103,6 @@ namespace EasySaturdays.Controllers
         public IActionResult DeleteUser(int id)
         {
             var user = _context.Users.Find(id);
-            // Prevent deleting yourself or the main admin
             if (user != null && user.Email != "admin@easysaturdays.com")
             {
                 _context.Users.Remove(user);
@@ -106,7 +112,38 @@ namespace EasySaturdays.Controllers
             return RedirectToAction("Index");
         }
 
-        // 7. VIEW REPORTS (GET - Shows the Report Page)
+        // 7. ROLE CHANGE APPROVE/REJECT
+        [HttpPost]
+        public IActionResult ApproveRoleChange(int requestId)
+        {
+            var request = _context.RoleChangeRequests.Find(requestId);
+            if (request != null && request.Status == "Pending")
+            {
+                request.Status = "Approved";
+
+                var user = _context.Users.Find(request.UserId);
+                if (user != null) user.Role = request.RequestedRole;
+
+                _context.SaveChanges();
+                TempData["Success"] = "Role change approved! User role has been updated.";
+            }
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        public IActionResult RejectRoleChange(int requestId)
+        {
+            var request = _context.RoleChangeRequests.Find(requestId);
+            if (request != null && request.Status == "Pending")
+            {
+                request.Status = "Rejected";
+                _context.SaveChanges();
+                TempData["Success"] = "Role change request rejected.";
+            }
+            return RedirectToAction("Index");
+        }
+
+        // 8. VIEW REPORTS (GET)
         [HttpGet]
         public IActionResult ViewReports()
         {

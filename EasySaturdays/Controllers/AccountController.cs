@@ -14,17 +14,21 @@ namespace EasySaturdays.Controllers
         public AccountController(AppDbContext context) { _context = context; }
         
         // ==========================================
-        // Profile Action
+        // Profile Actions
         // ==========================================
         [Authorize]
         [HttpGet]
         public IActionResult Profile()
         {
-            // Get the current user's ID from the security cookie
-            var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value);
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
             var user = _context.Users.Find(userId);
 
             if (user == null) return NotFound();
+
+            // Check if there is a pending request so the UI can hide the form
+            ViewBag.PendingRequest = _context.RoleChangeRequests
+                .FirstOrDefault(r => r.UserId == userId && r.Status == "Pending");
+
             return View(user);
         }
 
@@ -32,12 +36,11 @@ namespace EasySaturdays.Controllers
         [HttpPost]
         public IActionResult UpdateProfile(User model)
         {
-            var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value);
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
             var user = _context.Users.Find(userId);
 
             if (user == null) return NotFound();
 
-            // Update editable fields (Email is usually locked for security)
             user.FirstName = model.FirstName;
             user.LastName = model.LastName;
             user.Phone = model.Phone;
@@ -50,6 +53,41 @@ namespace EasySaturdays.Controllers
             return RedirectToAction("Profile");
         }
 
+        [Authorize]
+        [HttpPost]
+        public IActionResult RequestRoleChange(string requestedRole)
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var user = _context.Users.Find(userId);
+
+            if (user == null || string.IsNullOrEmpty(requestedRole) || requestedRole == user.Role)
+            {
+                TempData["Error"] = "Invalid role request.";
+                return RedirectToAction("Profile");
+            }
+
+            var existingRequest = _context.RoleChangeRequests
+                .FirstOrDefault(r => r.UserId == userId && r.Status == "Pending");
+
+            if (existingRequest != null)
+            {
+                TempData["Error"] = "You already have a pending role change request.";
+                return RedirectToAction("Profile");
+            }
+
+            _context.RoleChangeRequests.Add(new RoleChangeRequest
+            {
+                UserId = userId,
+                CurrentRole = user.Role,
+                RequestedRole = requestedRole,
+                Status = "Pending"
+            });
+            _context.SaveChanges();
+
+            TempData["Success"] = $"Request to become a {requestedRole} has been submitted for Admin approval.";
+            return RedirectToAction("Profile");
+        }
+
         // ==========================================
         // LOGIN ACTIONS
         // ==========================================
@@ -59,7 +97,6 @@ namespace EasySaturdays.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(string email, string password)
         {
-            // 1. Server-side error handling: Check if fields are empty
             if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
             {
                 ViewBag.Error = "Please enter both email and password.";
@@ -68,14 +105,12 @@ namespace EasySaturdays.Controllers
 
             var user = _context.Users.FirstOrDefault(u => u.Email == email);
 
-            // 2. Check if user exists and password matches
             if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
             {
                 ViewBag.Error = "Invalid email or password. Please try again.";
                 return View();
             }
 
-            // 3. Success: Create secure cookie
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.FirstName),
@@ -97,42 +132,36 @@ namespace EasySaturdays.Controllers
         [HttpPost]
         public IActionResult Register(User user, string password, string confirmPassword, string role, bool popia, bool terms)
         {
-            // 1. Error Handling: Password Match
             if (password != confirmPassword)
             {
                 ViewBag.Error = "Passwords do not match. Please try again.";
                 return View(user);
             }
 
-            // 2. Error Handling: Password Complexity (8+ chars, 1 Upper, 1 Number)
             if (password.Length < 8 || !password.Any(char.IsUpper) || !password.Any(char.IsDigit))
             {
                 ViewBag.Error = "Password must be at least 8 characters long, contain 1 uppercase letter, and 1 number.";
                 return View(user);
             }
 
-            // 3. Error Handling: Legal Consents
             if (!popia || !terms)
             {
                 ViewBag.Error = "You must consent to POPIA and the Code of Conduct to register.";
                 return View(user);
             }
 
-            // 4. Error Handling: Required fields (Server-side ModelState)
             if (string.IsNullOrWhiteSpace(user.FirstName) || string.IsNullOrWhiteSpace(user.LastName) || string.IsNullOrWhiteSpace(user.Email))
             {
                 ViewBag.Error = "Please fill in all required fields.";
                 return View(user);
             }
 
-            // 5. Error Handling: Duplicate Email Check
             if (_context.Users.Any(u => u.Email.ToLower() == user.Email.ToLower()))
             {
                 ViewBag.Error = "This email address is already registered. Try logging in.";
                 return View(user);
             }
 
-            // 6. Success: Hash password, save to DB
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(password);
             user.Role = role;
             _context.Users.Add(user);

@@ -22,17 +22,29 @@
                     <p class="text-muted" style="font-size: 0.9rem;">@campaign.Description</p>
 
                     @{
-                        var percent = Math.Min(100, (campaign.RaisedAmount / campaign.GoalAmount) * 100);
+                        // 1. Prevent division by zero
+                        decimal goal = campaign.GoalAmount > 0 ? campaign.GoalAmount : 1;
+                        decimal raised = campaign.RaisedAmount;
+
+                        // 2. Calculate percentage
+                        decimal mathPercentage = (raised / goal) * 100;
+
+                        // 3. Clamp between 0 and 100, and convert to Integer to prevent CSS parsing errors
+                        int displayPercent = (int)Math.Min(100, Math.Max(0, mathPercentage));
                     }
+
                     <div class="progress-bar-container">
-                        <div class="progress-fill" style="width: @percent%"></div>
+                        <!-- Use the integer directly in the style string -->
+                        <div class="progress-fill" style="width: @(displayPercent)%;"></div>
                     </div>
+
                     <div class="campaign-stats">
-                        <span>Raised: R@(campaign.RaisedAmount)</span>
-                        <span>Goal: R@(campaign.GoalAmount)</span>
+                        <span>Raised: R@(campaign.RaisedAmount.ToString("N0"))</span>
+                        <span>Goal: R@(campaign.GoalAmount.ToString("N0"))</span>
                     </div>
+
                     <div class="text-muted mb-3" style="font-size: 0.8rem;">
-                        Remaining: R@(campaign.GoalAmount - campaign.RaisedAmount)
+                        Remaining: R@((campaign.GoalAmount - campaign.RaisedAmount).ToString("N0"))
                     </div>
 
                     <div class="campaign-actions">
