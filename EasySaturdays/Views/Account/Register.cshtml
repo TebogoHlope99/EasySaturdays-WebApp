@@ -1,0 +1,140 @@
+﻿@{
+    ViewData["Title"] = "Register";
+}
+
+<div class="auth-card">
+    <h2>Create Account ✨</h2>
+    <p class="text-center text-muted mb-4">Join the Easy Saturdays community today</p>
+
+    <!-- SERVER-SIDE ERROR DISPLAY -->
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-danger text-center p-2 fw-bold">@ViewBag.Error</div>
+    }
+    @if (ViewBag.Success != null)
+    {
+        <div class="alert alert-success text-center p-2 fw-bold">@ViewBag.Success</div>
+    }
+
+    <form method="post" id="registerForm" onsubmit="return validateForm()">
+
+        <div class="auth-tabs">
+            <div class="auth-tab active" onclick="selectRole('Donor', this)">Donor</div>
+            <div class="auth-tab" onclick="selectRole('Volunteer', this)">Volunteer</div>
+            <div class="auth-tab" onclick="selectRole('Both', this)">Both</div>
+        </div>
+        <input type="hidden" name="role" id="roleInput" value="Donor" />
+
+        <div class="row mb-3">
+            <div class="col">
+                <label class="form-label fw-bold">First Name *</label>
+                <input type="text" name="FirstName" class="form-control" placeholder="e.g., John" required />
+            </div>
+            <div class="col">
+                <label class="form-label fw-bold">Last Name *</label>
+                <input type="text" name="LastName" class="form-control" placeholder="e.g., Doe" required />
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-bold">Email Address *</label>
+            <input type="email" name="Email" id="regEmail" class="form-control" placeholder="e.g., johndoe@email.com" required />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-bold">Password * (min 8 chars, 1 Upper, 1 Number)</label>
+            <input type="password" name="password" id="regPassword" class="form-control" placeholder="Create a strong password" required />
+            <small id="passError" class="text-danger fw-bold" style="display:none;">Password must be 8+ characters, with 1 uppercase and 1 number.</small>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-bold">Confirm Password *</label>
+            <input type="password" name="confirmPassword" id="regConfirm" class="form-control" placeholder="Confirm your password" required />
+            <small id="matchError" class="text-danger fw-bold" style="display:none;">Passwords do not match.</small>
+        </div>
+
+        <div class="mb-4">
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" name="popia" id="regPopia" value="true" required>
+                <label class="form-check-label small">I consent to my data being stored in accordance with POPIA.</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="terms" id="regTerms" value="true" required>
+                <label class="form-check-label small">I agree to abide by the foundation's Code of Conduct.</label>
+            </div>
+            <small id="consentError" class="text-danger fw-bold" style="display:none;">You must agree to both policies.</small>
+        </div>
+
+        <button type="submit" id="submitBtn" class="btn btn-primary btn-pill w-100 py-2 fw-bold">Register as Donor</button>
+
+        <p class="text-center mt-3 text-muted">
+            Already have an account? <a asp-action="Login" style="color: var(--primary-color); font-weight: bold;">Login here</a>
+        </p>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        // --- ROLE TAB LOGIC ---
+        function selectRole(role, element) {
+            document.querySelectorAll('.auth-tab').forEach(tab => tab.classList.remove('active'));
+            element.classList.add('active');
+            document.getElementById('roleInput').value = role;
+
+            const btn = document.getElementById('submitBtn');
+            if (role === 'Donor') {
+                btn.innerText = 'Register as Donor';
+                btn.className = 'btn btn-primary btn-pill w-100 py-2 fw-bold';
+            } else if (role === 'Volunteer') {
+                btn.innerText = 'Register as Volunteer';
+                btn.className = 'btn btn-success btn-pill w-100 py-2 fw-bold';
+            } else {
+                btn.innerText = 'Register as Donor & Volunteer';
+                btn.className = 'btn btn-warning btn-pill w-100 py-2 fw-bold';
+            }
+        }
+
+        // --- CLIENT-SIDE ERROR HANDLING LOGIC ---
+        function validateForm() {
+            let isValid = true;
+
+            // 1. Check Password Length/Complexity
+            const pass = document.getElementById('regPassword').value;
+            const passError = document.getElementById('passError');
+            const passwordRegex = /^(?=.*[A-Z])(?=.*\d).{8,}$/; // 8 chars, 1 upper, 1 num
+
+            if (!passwordRegex.test(pass)) {
+                passError.style.display = 'block';
+                isValid = false;
+            } else {
+                passError.style.display = 'none';
+            }
+
+            // 2. Check Passwords Match
+            const confirm = document.getElementById('regConfirm').value;
+            const matchError = document.getElementById('matchError');
+
+            if (pass !== confirm) {
+                matchError.style.display = 'block';
+                isValid = false;
+            } else {
+                matchError.style.display = 'none';
+            }
+
+            // 3. Check Consents (POPIA & Terms)
+            const popia = document.getElementById('regPopia').checked;
+            const terms = document.getElementById('regTerms').checked;
+            const consentError = document.getElementById('consentError');
+
+            if (!popia || !terms) {
+                consentError.style.display = 'block';
+                isValid = false;
+            } else {
+                consentError.style.display = 'none';
+            }
+
+            // Stop form submission if any errors were found
+            return isValid;
+        }
+    </script>
+}

@@ -1,0 +1,312 @@
+/* --- ROOT VARIABLES (Matches Prototype) --- */
+:root {
+    --primary-color: #1e3a8a;
+    --secondary-color: #f59e0b;
+    --accent-color: #10b981;
+    --bg-color: #f8fafc;
+    --text-dark: #1e293b;
+    --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-dark);
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.main-content {
+    flex: 1;
+    padding-top: 2rem;
+}
+
+/* --- NAVBAR (Figure 4.1) --- */
+.custom-navbar {
+    background-color: var(--primary-color) !important;
+    box-shadow: var(--shadow);
+    padding: 0.8rem 0;
+}
+
+    .custom-navbar .navbar-brand {
+        font-weight: 700;
+        font-size: 1.4rem;
+        color: white !important;
+    }
+
+        .custom-navbar .navbar-brand span {
+            color: var(--secondary-color);
+        }
+
+    .custom-navbar .nav-link {
+        color: rgba(255, 255, 255, 0.8) !important;
+        font-weight: 500;
+    }
+
+        .custom-navbar .nav-link:hover {
+            color: var(--secondary-color) !important;
+        }
+
+.user-badge {
+    background: rgba(255, 255, 255, 0.15);
+    padding: 0.3rem 1rem;
+    border-radius: 50px;
+    color: white;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.role-tag {
+    font-size: 0.65rem;
+    background: var(--secondary-color);
+    color: var(--text-dark);
+    padding: 0.1rem 0.6rem;
+    border-radius: 50px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+/* --- HERO SECTION (Figure 4.1) --- */
+.hero-section {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #0f172a 100%);
+    color: white;
+    padding: 4rem 2rem;
+    border-radius: 12px;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+    .hero-section h1 {
+        font-weight: 800;
+        font-size: 2.5rem;
+    }
+
+        .hero-section h1 span {
+            color: var(--secondary-color);
+        }
+
+    .hero-section p {
+        max-width: 600px;
+        margin: 1rem auto 2rem;
+        opacity: 0.9;
+    }
+
+/* --- STATS CARDS (Figure 4.1) --- */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: var(--shadow);
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #64748b;
+}
+
+    .stat-card .number {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--primary-color);
+        margin-top: 0.5rem;
+    }
+
+/* --- CAMPAIGN CARDS (Figure 4.5) --- */
+.campaign-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+    .campaign-card:hover {
+        transform: translateY(-5px);
+    }
+
+.campaign-header {
+    padding: 2rem 1rem;
+    color: white;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.bg-blue {
+    background: #1e3a8a;
+}
+
+.bg-orange {
+    background: #f59e0b;
+}
+
+.bg-green {
+    background: #10b981;
+}
+
+.campaign-body {
+    padding: 1.5rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.progress-bar-container {
+    background: #e2e8f0;
+    height: 8px;
+    border-radius: 50px;
+    margin-bottom: 0.5rem;
+    overflow: hidden;
+}
+
+.progress-fill {
+    background: var(--accent-color);
+    height: 100%;
+}
+
+.campaign-stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.campaign-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: auto;
+}
+
+/* --- BUTTONS --- */
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-success {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+.btn-warning {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+    color: #1e293b;
+    font-weight: bold;
+}
+
+.btn-pill {
+    border-radius: 50px;
+    font-weight: bold;
+    padding: 0.5rem 1.5rem;
+}
+
+/* --- AUTH CARDS (Figures 4.2, 4.3, 4.4) --- */
+.auth-card {
+    background: white;
+    max-width: 500px;
+    margin: 2rem auto;
+    padding: 2.5rem;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+}
+
+    .auth-card h2 {
+        text-align: center;
+        color: var(--primary-color);
+        font-weight: bold;
+    }
+
+.auth-tabs {
+    display: flex;
+    border-bottom: 2px solid #e2e8f0;
+    margin-bottom: 1.5rem;
+}
+
+.auth-tab {
+    flex: 1;
+    text-align: center;
+    padding: 0.75rem;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+}
+
+    .auth-tab.active {
+        color: var(--primary-color);
+        border-bottom-color: var(--primary-color);
+    }
+
+/* --- DASHBOARD TABLES (Figures 4.9, 4.10, 4.12) --- */
+.table-custom {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+    .table-custom thead {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .table-custom th, .table-custom td {
+        padding: 1rem;
+        vertical-align: middle;
+    }
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.status-completed {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.status-upcoming {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-active {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+/* --- FOOTER --- */
+.custom-footer {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 2rem 0;
+    margin-top: auto;
+    border-top: 3px solid var(--secondary-color);
+}
+
+    .custom-footer a {
+        color: var(--secondary-color);
+        text-decoration: none;
+        margin: 0 1rem;
+        font-size: 0.9rem;
+    }
+
+    .custom-footer .footer-copy {
+        font-size: 0.8rem;
+        opacity: 0.8;
+    }

@@ -1,0 +1,91 @@
+﻿@model EasySaturdays.Models.Campaign
+@{
+    ViewData["Title"] = "Payment";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6 shadow p-4 bg-white rounded">
+        <h3 class="text-center">💳 Secure Payment</h3>
+        <p class="text-center text-muted">Donating to: <strong>@Model.Title</strong></p>
+        
+        <div id="paymentError" class="alert alert-danger d-none"></div>
+
+        <form id="payForm">
+            <input type="hidden" id="campaignId" value="@Model.Id" />
+            
+            <div class="mb-3">
+                <label>Amount (ZAR)</label>
+                <input type="number" id="amount" class="form-control" value="50" min="50" max="@ViewBag.Remaining" required />
+                <small class="text-muted">Remaining goal: R@(ViewBag.Remaining)</small>
+            </div>
+
+            <div class="mb-3">
+                <label>Payment Method</label>
+                <select id="method" class="form-select" onchange="toggleCard(this.value)">
+                    <option value="Credit Card">Credit Card</option>
+                    <option value="Instant EFT">Instant EFT</option>
+                    <option value="Mobile Money">Mobile Money</option>
+                    <option value="Cash">Cash Drop-off</option>
+                </select>
+            </div>
+
+            <div id="cardDetails">
+                <div class="mb-3">
+                    <label>Card Number</label>
+                    <input type="text" id="cardNumber" class="form-control" placeholder="1234 5678 9012 3456" maxlength="19" />
+                </div>
+            </div>
+
+            <div class="alert alert-info mt-3">
+                <div class="d-flex justify-content-between"><span>Donation:</span> <span>R<span id="summaryAmount">50</span>.00</span></div>
+                <div class="d-flex justify-content-between fw-bold border-top pt-2 mt-2"><span>Total:</span> <span>R<span id="summaryTotal">50</span>.00</span></div>
+            </div>
+
+            <button type="submit" class="btn btn-success w-100">✅ Complete Donation</button>
+            <a asp-action="Index" class="btn btn-outline-secondary w-100 mt-2">Cancel</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Card Formatting (From your prototype)
+        document.getElementById('cardNumber').addEventListener('input', function (e) {
+            let val = e.target.value.replace(/\D/g, '');
+            if (val.length > 16) val = val.slice(0, 16);
+            e.target.value = val.match(/.{1,4}/g)?.join(' ') || val;
+        });
+
+        // Amount Summary Update
+        document.getElementById('amount').addEventListener('input', function(e) {
+            document.getElementById('summaryAmount').innerText = e.target.value;
+            document.getElementById('summaryTotal').innerText = e.target.value;
+        });
+
+        function toggleCard(method) {
+            document.getElementById('cardDetails').style.display = (method === 'Cash') ? 'none' : 'block';
+        }
+
+        // Submit Logic
+        document.getElementById('payForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append("campaignId", document.getElementById('campaignId').value);
+            formData.append("amount", document.getElementById('amount').value);
+            formData.append("method", document.getElementById('method').value);
+            formData.append("cardNumber", document.getElementById('cardNumber').value);
+
+            const response = await fetch('/Home/ProcessPayment', { method: 'POST', body: formData });
+            const result = await response.json();
+
+            if (result.success) {
+                alert(result.message);
+                window.location.href = '/Dashboard'; // Redirect to dashboard on success
+            } else {
+                const errorDiv = document.getElementById('paymentError');
+                errorDiv.innerText = result.message;
+                errorDiv.classList.remove('d-none');
+            }
+        });
+    </script>
+}

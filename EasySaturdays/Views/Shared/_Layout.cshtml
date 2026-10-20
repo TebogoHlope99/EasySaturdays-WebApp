@@ -1,0 +1,89 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - EasySaturdays</title>
+    <script type="importmap"></script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/EasySaturdays.styles.css" asp-append-version="true" />
+
+    <style>
+        .user-badge {
+            transition: all 0.2s ease;
+        }
+
+        .user-badge:hover {
+            background: rgba(255, 255, 255, 0.25) !important;
+            transform: scale(1.02);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-dark custom-navbar">
+            <div class="container">
+                <a class="navbar-brand" asp-controller="Home" asp-action="Index">Easy<span>Saturdays</span></a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-end">
+                    <ul class="navbar-nav align-items-center gap-2">
+                        <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Index">Home</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Campaigns">Campaigns</a></li>
+
+                        <li class="nav-item">
+                            <a asp-controller="Account" asp-action="Profile" class="user-badge text-decoration-none" title="Edit Profile">
+                                @User.Identity.Name
+                                <span class="role-tag">@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</span>
+                            </a>
+                        </li>
+
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <li class="nav-item"><a class="nav-link text-warning fw-bold" asp-controller="Admin" asp-action="Index">Dashboard</a></li>
+                            }
+                            else
+                            {
+                                <li class="nav-item"><a class="nav-link" asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
+                            }
+
+                            <li class="nav-item"><a class="btn btn-outline-light btn-sm rounded-pill px-3" asp-controller="Account" asp-action="Logout">Logout</a></li>
+                        }
+                        else
+                        {
+                            <li class="nav-item"><a class="nav-link text-warning" asp-controller="Account" asp-action="Login">Login</a></li>
+                            <li class="nav-item"><a class="nav-link text-warning" asp-controller="Account" asp-action="Register">Register</a></li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container main-content">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="custom-footer">
+        <div class="container text-center">
+            <div class="footer-links mb-2">
+                <a href="#">Home</a>
+                <a href="#">About Us</a>
+                <a href="#">Contact</a>
+            </div>
+            <div class="footer-copy">&copy; 2026 The Easy Saturdays Foundation. All rights reserved.</div>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

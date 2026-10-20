@@ -1,0 +1,33 @@
+﻿@{
+    ViewData["Title"] = "Login";
+}
+
+<div class="auth-card">
+    <h2>Welcome Back 👋</h2>
+    <p class="text-center text-muted mb-4">Login to your account to donate or manage your volunteer activities</p>
+
+    <!-- SERVER-SIDE ERROR DISPLAY -->
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-danger text-center p-2 fw-bold">@ViewBag.Error</div>
+    }
+    @if (ViewBag.Success != null)
+    {
+        <div class="alert alert-success text-center p-2 fw-bold">@ViewBag.Success</div>
+    }
+
+    <form method="post">
+        <div class="mb-3">
+            <label class="form-label fw-bold">Email Address</label>
+            <input type="email" name="email" class="form-control form-control-lg" placeholder="e.g., johndoe@email.com" required />
+        </div>
+        <div class="mb-4">
+            <label class="form-label fw-bold">Password</label>
+            <input type="password" name="password" class="form-control form-control-lg" placeholder="Enter your password" required />
+        </div>
+        <button type="submit" class="btn btn-primary btn-pill w-100 py-2 fw-bold">Login</button>
+        <p class="text-center mt-3 text-muted">
+            Don't have an account? <a asp-action="Register" style="color: var(--primary-color); font-weight: bold;">Register here</a>
+        </p>
+    </form>
+</div>

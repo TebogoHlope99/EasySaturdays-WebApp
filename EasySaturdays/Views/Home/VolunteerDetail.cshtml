@@ -1,0 +1,49 @@
+﻿@model EasySaturdays.Models.Campaign
+
+<h2 class="mt-4">📋 Volunteer Opportunity</h2>
+<div class="card shadow p-4 mt-3">
+    <h4>@Model.Title</h4>
+    <p>@Model.Description</p>
+    <hr />
+    <div id="shiftError" class="alert alert-danger d-none"></div>
+    <form id="shiftForm">
+        <input type="hidden" id="campaignId" value="@Model.Id" />
+        <div class="mb-3">
+            <label>Select Date (Bounded by Campaign Dates)</label>
+            <input type="date" id="shiftDate" class="form-control" min="@Model.StartDate.ToString("yyyy-MM-dd")" max="@Model.EndDate.ToString("yyyy-MM-dd")" required />
+        </div>
+        <div class="mb-3">
+            <label>Shift Time</label>
+            <select id="shiftTime" class="form-select" required>
+                <option value="">Select shift...</option>
+                <option value="08:00 - 12:00">08:00 - 12:00 (Morning)</option>
+                <option value="13:00 - 17:00">13:00 - 17:00 (Afternoon)</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-success">Sign Up</button>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('shiftForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append("campaignId", document.getElementById('campaignId').value);
+            formData.append("date", document.getElementById('shiftDate').value);
+            formData.append("time", document.getElementById('shiftTime').value);
+
+            const response = await fetch('/Home/SignUpShift', { method: 'POST', body: formData });
+            const result = await response.json();
+
+            if (result.success) {
+                alert(result.message);
+                window.location.href = '/Dashboard';
+            } else {
+                const err = document.getElementById('shiftError');
+                err.innerText = result.message;
+                err.classList.remove('d-none');
+            }
+        });
+    </script>
+}

@@ -1,0 +1,86 @@
+﻿@model EasySaturdays.Models.User
+@{
+    ViewData["Title"] = "Edit Profile";
+}
+
+<div class="d-flex justify-content-center mt-4">
+    <div class="card shadow-sm border-0" style="max-width: 600px; width: 100%;">
+        <div class="card-body p-5">
+
+            <div class="text-center mb-4">
+                <h3 class="fw-bold" style="color: #1e3a8a;">👤 Edit Profile</h3>
+                <p class="text-muted">Update your personal information</p>
+            </div>
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success fw-bold text-center">@TempData["Success"]</div>
+            }
+
+            <form asp-action="UpdateProfile" method="post">
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <label class="fw-bold mb-1">First Name *</label>
+                        <input asp-for="FirstName" class="form-control" required />
+                    </div>
+                    <div class="col-6">
+                        <label class="fw-bold mb-1">Last Name *</label>
+                        <input asp-for="LastName" class="form-control" required />
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="fw-bold mb-1">Email Address (Cannot be changed)</label>
+                    <input asp-for="Email" class="form-control" disabled style="background-color: #f1f5f9;" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="fw-bold mb-1">Phone Number</label>
+                    <input asp-for="Phone" class="form-control" placeholder="e.g., 082 123 4567" />
+                </div>
+
+                @if (Model.Role == "Volunteer" || Model.Role == "Both")
+                {
+                    <div class="mb-4">
+                        <label class="fw-bold mb-1">Skills / Areas of Interest</label>
+                        <select asp-for="Skills" class="form-select">
+                            <option value="Event Coordination">Event Coordination</option>
+                            <option value="Logistics & Distribution">Logistics & Distribution</option>
+                            <option value="Marketing & Social Media">Marketing & Social Media</option>
+                            <option value="Fundraising">Fundraising</option>
+                            <option value="Youth Mentorship">Youth Mentorship</option>
+                            <option value="General Support">General Support</option>
+                        </select>
+                    </div>
+                }
+
+                <!-- ROLE CHANGE REQUEST SECTION -->
+                <div class="border-top pt-4 mt-2 mb-4">
+                    <h6 class="fw-bold" style="color: #1e3a8a;">Request Role Change</h6>
+                    <p class="text-muted small mb-3">Request to change your role. Admin approval required.</p>
+
+                    <div class="row">
+                        <div class="col-7">
+                            <label class="fw-bold mb-1">Requested Role</label>
+                            <select class="form-select">
+                                <option value="">Select a role...</option>
+                                <option value="Donor">Donor</option>
+                                <option value="Volunteer">Volunteer</option>
+                                <option value="Both">Both (Donor & Volunteer)</option>
+                            </select>
+                        </div>
+                        <div class="col-5 d-flex align-items-end">
+                            <button type="button" class="btn btn-primary w-100 fw-bold" style="background-color: #1e3a8a;">Submit Request</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary fw-bold rounded-pill py-2" style="background-color: #1e3a8a;">Save Changes</button>
+                    <a asp-controller="Dashboard" asp-action="Index" class="btn btn-outline-secondary fw-bold rounded-pill py-2">Cancel</a>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>

@@ -1,0 +1,38 @@
+﻿@model EasySaturdays.Models.Campaign
+
+<h2 class="fw-bold mt-4">✏️ Edit Campaign</h2>
+
+<div class="card shadow-sm border-0 mt-3" style="max-width: 600px;">
+    <div class="card-body">
+        <form asp-action="EditCampaign" method="post">
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="RaisedAmount" />
+
+            <div class="mb-3">
+                <label class="fw-bold">Title</label>
+                <input asp-for="Title" class="form-control" required />
+            </div>
+
+            <div class="mb-3">
+                <label class="fw-bold">Goal Amount (R)</label>
+                <input asp-for="GoalAmount" type="number" class="form-control" required />
+            </div>
+
+            <div class="mb-3">
+                <label class="fw-bold">Description</label>
+                <textarea asp-for="Description" class="form-control" rows="3" required></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="fw-bold">Status</label>
+                <select asp-for="Status" class="form-select">
+                    <option value="Active">Active</option>
+                    <option value="Ended">Ended</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 fw-bold">Save Changes</button>
+            <a asp-action="Index" class="btn btn-outline-secondary w-100 mt-2">Cancel</a>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,61 @@
+﻿@model IEnumerable<EasySaturdays.Models.Campaign>
+
+<h2 class="mb-1" style="font-size: 1.8rem;">Active <span style="color: var(--secondary-color);">Campaigns</span></h2>
+<p class="text-muted mb-4">Support the drives that are changing lives in our community.</p>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger fw-bold">@TempData["Error"]</div>
+}
+
+<div class="row">
+    @foreach (var campaign in Model)
+    {
+        <div class="col-md-4 mb-4">
+            <div class="campaign-card">
+                <!-- Determine background color based on title for demo visual variance -->
+                <div class="campaign-header @(campaign.Title.Contains("School") ? "bg-blue" : campaign.Title.Contains("Winter") ? "bg-orange" : "bg-green")">
+                    @campaign.Title
+                </div>
+                <div class="campaign-body">
+                    <h5 class="fw-bold">@campaign.Title 2026</h5>
+                    <p class="text-muted" style="font-size: 0.9rem;">@campaign.Description</p>
+
+                    @{
+                        var percent = Math.Min(100, (campaign.RaisedAmount / campaign.GoalAmount) * 100);
+                    }
+                    <div class="progress-bar-container">
+                        <div class="progress-fill" style="width: @percent%"></div>
+                    </div>
+                    <div class="campaign-stats">
+                        <span>Raised: R@(campaign.RaisedAmount)</span>
+                        <span>Goal: R@(campaign.GoalAmount)</span>
+                    </div>
+                    <div class="text-muted mb-3" style="font-size: 0.8rem;">
+                        Remaining: R@(campaign.GoalAmount - campaign.RaisedAmount)
+                    </div>
+
+                    <div class="campaign-actions">
+                        <!-- DONATE BUTTON: Only show if user is Donor, Both, or Admin -->
+                        @if (User.IsInRole("Donor") || User.IsInRole("Both") || User.IsInRole("Admin"))
+                        {
+                            <a asp-controller="Home" asp-action="Payment" asp-route-id="@campaign.Id" class="btn btn-success btn-sm rounded-pill px-3">💳 Donate</a>
+                        }
+
+                        <!-- VOLUNTEER BUTTON: Only show if user is Volunteer, Both, or Admin -->
+                        @if (User.IsInRole("Volunteer") || User.IsInRole("Both") || User.IsInRole("Admin"))
+                        {
+                            <a asp-controller="Home" asp-action="VolunteerDetail" asp-route-id="@campaign.Id" class="btn btn-light btn-sm rounded-pill px-3 border">🙋 Volunteer</a>
+                        }
+
+                        <!-- If not logged in, prompt them to login -->
+                        @if (!User.Identity.IsAuthenticated)
+                        {
+                            <a asp-controller="Account" asp-action="Login" class="btn btn-outline-primary btn-sm rounded-pill px-3 w-100 mt-2">Login to Interact</a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

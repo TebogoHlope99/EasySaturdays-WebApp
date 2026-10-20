@@ -1,0 +1,320 @@
+﻿@model IEnumerable<EasySaturdays.Models.Campaign>
+
+<style>
+    /* Specific Admin Styling */
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+        .stat-card h6 {
+            color: #64748b;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary-color);
+        }
+
+            .stat-card .value.green {
+                color: var(--accent-color);
+            }
+
+    .filter-bar {
+        background: #f1f5f9;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        margin-bottom: 1rem;
+        font-size: 0.85rem;
+    }
+
+        .filter-bar select, .filter-bar input {
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            padding: 0.25rem 0.5rem;
+        }
+
+    .table-custom {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+    }
+
+        .table-custom th {
+            background: #1e3a8a;
+            color: white;
+            padding: 0.75rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .table-custom td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+    .badge-role {
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: capitalize;
+    }
+
+    .badge-admin {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .badge-donor {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .badge-volunteer {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .badge-both {
+        background: #f3e8ff;
+        color: #6b21a8;
+    }
+
+    .btn-edit {
+        background: #1e3a8a;
+        color: white;
+        border-radius: 4px;
+        padding: 0.2rem 0.5rem;
+        font-size: 0.75rem;
+        text-decoration: none;
+        border: none;
+    }
+
+    .btn-delete {
+        background: #ef4444;
+        color: white;
+        border-radius: 4px;
+        padding: 0.2rem 0.5rem;
+        font-size: 0.75rem;
+        border: none;
+    }
+</style>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success fw-bold">@TempData["Success"]</div>
+}
+
+<h2 class="fw-bold mb-1">Welcome, <span style="color: #f59e0b;">Admin</span>!</h2>
+<p class="text-muted mb-4">Here's an overview of your activity and impact.</p>
+
+<!-- TOP STATS CARDS -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <h6>Total Users</h6>
+            <div class="value">@ViewBag.TotalUsers</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <h6>Total Donations</h6>
+            <div class="value green">R@(ViewBag.TotalDonations.ToString("N0"))</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <h6>Total Volunteers</h6>
+            <div class="value">@ViewBag.Volunteers</div>
+        </div>
+    </div>
+    
+</div>
+
+<!-- ROLE CHANGE REQUESTS -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <h5 class="fw-bold mb-3">🔄 Role Change Requests</h5>
+        <p class="text-muted mb-0">No pending role change requests.</p>
+    </div>
+</div>
+
+<!-- MANAGE CAMPAIGNS -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <div class="admin-header">
+            <h5 class="fw-bold mb-0">📋 Manage Campaigns</h5>
+            <!-- CREATE CAMPAIGN BUTTON TRIGGERS MODAL -->
+            <button class="btn btn-primary btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#createModal">+ Create Campaign</button>
+        </div>
+
+        <!-- LIVE FILTER BAR -->
+        <div class="filter-bar">
+            <span>🔍 Filter:</span>
+            <input type="text" id="campaignSearch" placeholder="Search title..." onkeyup="filterTable('campaignTable', 0, this.value)" />
+        </div>
+
+        <table class="table-custom" id="campaignTable">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Goal</th>
+                    <th>Raised</th>
+                    <th>Progress</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in Model)
+                {
+                    var percent = Math.Round((c.RaisedAmount / c.GoalAmount) * 100);
+                    <tr>
+                        <td>@c.Title</td>
+                        <td>R@(c.GoalAmount.ToString("N0"))</td>
+                        <td>R@(c.RaisedAmount.ToString("N0"))</td>
+                        <td>@percent%</td>
+                        <td><span class="badge-role badge-admin">@c.Status</span></td>
+                        <td>
+                            <!-- EDIT BUTTON ROUTES TO EDIT ACTION -->
+                            <a asp-action="EditCampaign" asp-route-id="@c.Id" class="btn-edit">✏️ Edit</a>
+
+                            <!-- DELETE BUTTON -->
+                            <form asp-action="DeleteCampaign" method="post" style="display:inline;" onsubmit="return confirm('Delete this campaign?');">
+                                <input type="hidden" name="id" value="@c.Id" />
+                                <button type="submit" class="btn-delete">🗑️</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- VIEW REPORTS -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <div class="admin-header">
+            <h5 class="fw-bold mb-0">📊 View Reports</h5>
+            <a asp-action="ViewReports" class="btn btn-outline-primary btn-sm rounded-pill px-3">Generate Report</a>
+        </div>
+        <p class="text-muted mb-0">Click "Generate Report" to view analytics.</p>
+    </div>
+</div>
+
+<!-- MANAGE USERS -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <h5 class="fw-bold mb-3">👥 Manage Users</h5>
+
+        <div class="filter-bar">
+            <span>🔍 Filter:</span>
+            <input type="text" placeholder="Search name or email..." onkeyup="filterTable('userTable', 0, this.value)" />
+        </div>
+
+        <table class="table-custom" id="userTable">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var u in ViewBag.Users as List<EasySaturdays.Models.User>)
+                {
+                    var roleClass = u.Role.ToLower() switch
+                    {
+                        "admin" => "badge-admin",
+                        "donor" => "badge-donor",
+                        "volunteer" => "badge-volunteer",
+                        _ => "badge-both"
+                    };
+                    <tr>
+                        <td>@u.FirstName @u.LastName</td>
+                        <td>@u.Email</td>
+                        <td><span class="badge-role @roleClass">@u.Role</span></td>
+                        <td>
+                            <form asp-action="DeleteUser" method="post" style="display:inline;" onsubmit="return confirm('Delete user?');">
+                                <input type="hidden" name="id" value="@u.Id" />
+                                <button type="submit" class="btn-delete">🗑️</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ALL DONATIONS & SHIFTS (Kept as is from your code) -->
+<!-- (Omitted for brevity, keep your existing Donations and Shifts tables here) -->
+<!-- CREATE CAMPAIGN MODAL (Hidden by default) -->
+<div class="modal fade" id="createModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="CreateCampaign" method="post">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">📢 Create New Campaign</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="fw-bold">Title *</label>
+                        <input name="Title" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="fw-bold">Goal Amount (R) *</label>
+                        <input name="GoalAmount" type="number" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="fw-bold">Description *</label>
+                        <textarea name="Description" class="form-control" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Launch Campaign</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Simple Live Table Filter using JavaScript
+        function filterTable(tableId, columnIndex, searchValue) {
+            const table = document.getElementById(tableId);
+            const rows = table.getElementsByTagName("tbody")[0].getElementsByTagName("tr");
+
+            for (let i = 0; i < rows.length; i++) {
+                const cell = rows[i].getElementsByTagName("td")[columnIndex];
+                if (cell) {
+                    const textValue = cell.textContent || cell.innerText;
+                    rows[i].style.display = textValue.toLowerCase().includes(searchValue.toLowerCase()) ? "" : "none";
+                }
+            }
+        }
+    </script>
+}

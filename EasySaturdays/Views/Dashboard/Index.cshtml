@@ -1,0 +1,355 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+    var role = ViewBag.UserRole as string;
+}
+
+<style>
+    .dash-header {
+        font-size: 2rem;
+        font-weight: 800;
+        margin-bottom: 0.2rem;
+    }
+
+        .dash-header span {
+            color: var(--secondary-color);
+        }
+
+    .dash-subtitle {
+        color: #64748b;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+        .stat-card h6 {
+            color: #64748b;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-card .value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            margin-top: 0.5rem;
+        }
+
+            .stat-card .value.green {
+                color: var(--accent-color);
+            }
+
+    .table-custom {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.95rem;
+    }
+
+        .table-custom th {
+            background: #1e3a8a;
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .table-custom td {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+    .badge-status {
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: capitalize;
+    }
+
+    .status-completed {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .status-upcoming {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .btn-action {
+        border-radius: 50px;
+        font-weight: 600;
+        padding: 0.4rem 1.2rem;
+        font-size: 0.85rem;
+    }
+</style>
+
+<h1 class="dash-header">Welcome, <span>@User.Identity.Name</span>!</h1>
+<p class="dash-subtitle">Here's an overview of your activity and impact.</p>
+
+<!-- ========================================== -->
+<!-- DONOR DASHBOARD (Role == Donor)            -->
+<!-- ========================================== -->
+@if (role == "Donor")
+{
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="stat-card">
+                <h6>Total Donated</h6>
+                <div class="value green">R@(ViewBag.TotalDonated.ToString("N0"))</div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="stat-card">
+                <h6>Campaigns Supported</h6>
+                <div class="value">@ViewBag.CampaignsSupported</div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="stat-card">
+                <h6>Tax Receipts</h6>
+                <div class="value">@ViewBag.TaxReceipts</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <h5 class="fw-bold mb-3">Your Donation History</h5>
+            <table class="table-custom">
+                <thead>
+                    <tr>
+                        <th>Campaign</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                        <th>Method</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (ViewBag.RecentDonations.Count == 0)
+                    {
+                        <tr><td colspan="4" class="text-muted text-center py-3">No donations recorded yet.</td></tr>
+                    }
+                    @foreach (var d in ViewBag.RecentDonations)
+                    {
+                        <tr>
+                            <td>@d.Campaign.Title</td>
+                            <td>R@(d.Amount.ToString("N0"))</td>
+                            <td>@d.Date.ToString("yyyy-MM-dd")</td>
+                            <td>@d.Method</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <a asp-controller="Home" asp-action="Campaigns" class="btn btn-success btn-action mt-3">Donate Now</a>
+        </div>
+    </div>
+}
+
+<!-- ========================================== -->
+<!-- VOLUNTEER DASHBOARD (Role == Volunteer)    -->
+<!-- ========================================== -->
+@if (role == "Volunteer")
+{
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="stat-card">
+                <h6>Hours Contributed</h6>
+                <div class="value green">@ViewBag.HoursContributed</div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="stat-card">
+                <h6>Shifts Completed</h6>
+                <div class="value">@ViewBag.ShiftsCompleted</div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="stat-card">
+                <h6>Upcoming Shifts</h6>
+                <div class="value">@ViewBag.UpcomingShiftsCount</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <h5 class="fw-bold mb-3">Your Volunteer Schedule</h5>
+            <table class="table-custom">
+                <thead>
+                    <tr>
+                        <th>Campaign</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (ViewBag.UpcomingShifts.Count == 0)
+                    {
+                        <tr><td colspan="4" class="text-muted text-center py-3">No upcoming shifts.</td></tr>
+                    }
+                    @foreach (var s in ViewBag.UpcomingShifts)
+                    {
+                        var statusClass = s.Status == "Upcoming" ? "status-upcoming" : "status-completed";
+                        // Check if the shift is more than 1 day away (allows cancellation)
+                        var daysUntilShift = (s.Date.Date - DateTime.Today).Days;
+                        var canCancel = daysUntilShift > 1;
+                        <tr>
+                            <td>@s.Campaign.Title</td>
+                            <td>@s.Date.ToString("yyyy-MM-dd")</td>
+                            <td>@s.Time</td>
+                            <td><span class="badge-status @statusClass">@s.Status</span></td>
+                            <td>
+                                @if (canCancel)
+                                {
+                                    <button class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="cancelShift(@s.Id)">Cancel</button>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">Cannot cancel (Too close)</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <a asp-controller="Home" asp-action="Campaigns" class="btn btn-success btn-action mt-3">Find Volunteer Opportunities</a>
+        </div>
+    </div>
+}
+@section Scripts {
+    <script>
+        async function cancelShift(shiftId) {
+            if (!confirm("Are you sure you want to cancel this shift?")) return;
+
+            const formData = new FormData();
+            formData.append("shiftId", shiftId);
+
+            const response = await fetch('/Home/CancelShift', { method: 'POST', body: formData });
+            const result = await response.json();
+
+            if (result.success) {
+                // Remove the row from the table visually
+                document.getElementById(`shift-row-${shiftId}`).remove();
+                alert(result.message);
+                location.reload();
+            } else {
+                // Show error message
+                const errDiv = document.getElementById('shiftError');
+                errDiv.innerText = result.message;
+                errDiv.classList.remove('d-none');
+            }
+        }
+    </script>
+}
+
+<!-- ========================================== -->
+<!-- BOTH DASHBOARD (Role == Both)              -->
+<!-- ========================================== -->
+@if (role == "Both")
+{
+    <div class="row mb-4">
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="stat-card">
+                <h6>Total Donated</h6>
+                <div class="value green">R@(ViewBag.TotalDonated.ToString("N0"))</div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="stat-card">
+                <h6>Campaigns Supported</h6>
+                <div class="value">@ViewBag.CampaignsSupported</div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="stat-card">
+                <h6>Hours Contributed</h6>
+                <div class="value green">@ViewBag.HoursContributed</div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="stat-card">
+                <h6>Upcoming Shifts</h6>
+                <div class="value">@ViewBag.UpcomingShiftsCount</div>
+            </div>
+        </div>
+    </div>
+
+    
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <h5 class="fw-bold mb-3">Your Volunteer Schedule</h5>
+            <table class="table-custom">
+                <thead>
+                    <tr>
+                        <th>Campaign</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (ViewBag.UpcomingShifts.Count == 0)
+                    {
+                        <tr><td colspan="5" class="text-muted text-center py-3">No upcoming shifts.</td></tr>
+                    }
+                    @foreach (var s in ViewBag.UpcomingShifts)
+                    {
+                        var statusClass = s.Status == "Upcoming" ? "status-upcoming" : "status-completed";
+                        var daysUntilShift = (s.Date.Date - DateTime.Today).Days;
+                        var canCancel = daysUntilShift > 1;
+
+                        <tr id="shift-row-@s.Id">
+                            <td>@s.Campaign.Title</td>
+                            <td>@s.Date.ToString("yyyy-MM-dd")</td>
+                            <td>@s.Time</td>
+                            <td><span class="badge-status @statusClass">@s.Status</span></td>
+                            <td>
+                                @if (canCancel)
+                                {
+                                    <button class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="cancelShift(@s.Id)">Cancel</button>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">Locked</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <div class="mt-3">
+                <a asp-controller="Home" asp-action="Campaigns" class="btn btn-success btn-action me-2">Donate Now</a>
+                <a asp-controller="Home" asp-action="Campaigns" class="btn btn-primary btn-action">Find Volunteer Opportunities</a>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="d-flex justify-content-center">
+    <div class="card shadow-sm border-0 mb-4" style="max-width: 600px; width: 100%;">
+        <div class="card-body">
+            <h5 class="fw-bold mb-3">Your Activity Summary</h5>
+
+            <p class="mb-2">✅ <strong>@ViewBag.RecentDonations.Count</strong> donation(s) made, totaling <strong>R@(ViewBag.TotalDonated.ToString("N0"))</strong></p>
+            <p class="mb-4">🙋 <strong>@ViewBag.ShiftsCompleted</strong> shift(s) completed, <strong>@ViewBag.UpcomingShiftsCount</strong> upcoming</p>
+
+            @* <a asp-controller="Home" asp-action="Campaigns" class="btn btn-success btn-action me-2">Donate Now</a>
+            <a asp-controller="Home" asp-action="Campaigns" class="btn btn-primary btn-action">Find Volunteer Opportunities</a> *@
+        </div>
+    </div>
+</div>
