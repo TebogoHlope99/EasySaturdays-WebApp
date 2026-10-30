@@ -105,7 +105,7 @@ namespace EasySaturdays.Data
                 context.SaveChanges();
 
                 // ==========================================
-                // 4. UPDATE CAMPAIGN RAISED AMOUNTS
+                // 4. UPDATE CAMPAIGN RAISED AMOUNTS  
                 // ==========================================
                 // Automatically calculate the RaisedAmount based on the donations we just added
                 schoolCampaign.RaisedAmount = donations.Where(d => d.CampaignId == schoolCampaign.Id).Sum(d => d.Amount);
