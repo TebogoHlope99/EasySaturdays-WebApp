@@ -1,0 +1,245 @@
+﻿@model IEnumerable<EasySaturdays.Models.AdminRequest>
+@{
+    ViewData["Title"] = "Super Admin Control Center";
+}
+
+<style>
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+        .stat-card h6 {
+            color: #64748b;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary-color);
+        }
+
+    .table-custom {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+    }
+
+        .table-custom th {
+            background: #1e3a8a;
+            color: white;
+            padding: 0.75rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .table-custom td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: middle;
+        }
+
+    .badge-action {
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .bg-create {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .bg-delete {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .badge-status {
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: capitalize;
+    }
+
+    .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-approved {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-rejected {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+</style>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success fw-bold shadow-sm">@TempData["Success"]</div>
+}
+
+<h2 class="fw-bold mb-1">Welcome, <span style="color: #f59e0b;">Super Admin</span>!</h2>
+<p class="text-muted mb-4">Manage administrative requests and system access.</p>
+
+<!-- TOP STATS CARDS -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <h6>Pending Requests</h6>
+            <div class="value text-warning">@Model.Count(r => r.Status == "Pending")</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <h6>Total Admins</h6>
+            <div class="value">@ViewBag.TotalAdmins</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <h6>System Users</h6>
+            <div class="value">@ViewBag.TotalUsers</div>
+        </div>
+    </div>
+</div>
+
+<!-- LIST OF ALL CURRENT ADMINS -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <div class="admin-header">
+            <h5 class="fw-bold mb-0">👑 Current System Administrators</h5>
+        </div>
+
+        @if (ViewBag.AllAdmins == null || ViewBag.AllAdmins.Count == 0)
+        {
+            <p class="text-muted">No admins found.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table-custom">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var admin in ViewBag.AllAdmins as List<EasySaturdays.Models.User>)
+                        {
+                            <tr>
+                                <td><strong>@admin.FirstName @admin.LastName</strong></td>
+                                <td>@admin.Email</td>
+                                <td>
+                                    <span class="badge-status @(admin.Role == "SuperAdmin" ? "status-approved" : "status-pending")">
+                                        @admin.Role
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- MANAGE REQUESTS SECTION -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <div class="admin-header">
+            <h5 class="fw-bold mb-0">🛡️ Admin Management Requests</h5>
+        </div>
+
+        @if (!Model.Any())
+        {
+            <div class="text-center py-4 text-muted">
+                <h4>🎉 All caught up!</h4>
+                <p>No pending requests to review right now.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table-custom">
+                    <thead>
+                        <tr>
+                            <th>Requested By</th>
+                            <th>Action Type</th>
+                            <th>Target Details</th>
+                            <th>Date Requested</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var req in Model)
+                        {
+                            var actionClass = req.ActionType == "CreateAdmin" ? "bg-create" : "bg-delete";
+                            var statusClass = req.Status.ToLower() == "pending" ? "status-pending" : req.Status.ToLower() == "approved" ? "status-approved" : "status-rejected";
+
+                            <tr>
+                                <td>
+                                    <!-- Added null check just in case the user was deleted -->
+                                    <strong>@(req.RequestedByUser?.FirstName ?? "Unknown") @(req.RequestedByUser?.LastName ?? "Admin")</strong><br>
+                                    <small class="text-muted">@(req.RequestedByUser?.Email ?? "Deleted User")</small>
+                                </td>
+                                <td><span class="badge-action @actionClass">@req.ActionType</span></td>
+                                <td>
+                                    @if (req.ActionType == "CreateAdmin")
+                                    {
+                                        <span>New Email: <strong>@req.NewAdminEmail</strong></span>
+                                    }
+                                    else if (req.ActionType == "DeleteAdmin")
+                                    {
+                                        <span>Admin to Remove (ID): <strong>@req.TargetAdminId</strong></span>
+                                    }
+                                </td>
+                                <td>@req.RequestedAt.ToString("dd MMM yyyy, HH:mm")</td>
+                                <td><span class="badge-status @statusClass">@req.Status</span></td>
+                                <td>
+                                    @if (req.Status == "Pending")
+                                    {
+                                        <form asp-action="ApproveRequest" method="post" style="display:inline;">
+                                            <input type="hidden" name="requestId" value="@req.Id" />
+                                            <button type="submit" class="btn btn-sm btn-success rounded-pill px-3">✅ Approve</button>
+                                        </form>
+                                        <form asp-action="RejectRequest" method="post" style="display:inline;">
+                                            <input type="hidden" name="requestId" value="@req.Id" />
+                                            <button type="submit" class="btn btn-sm btn-danger rounded-pill px-3">❌ Reject</button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">Processed</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

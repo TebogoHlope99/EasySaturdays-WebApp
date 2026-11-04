@@ -9,7 +9,7 @@ namespace EasySaturdays.Models
         [Required] public string LastName { get; set; }
         [Required, EmailAddress] public string Email { get; set; }
         [Required] public string PasswordHash { get; set; }
-        [Required] public string Role { get; set; } // Admin, Donor, Volunteer
+        [Required] public string Role { get; set; } // Admin, SuperAdmin, Donor, Volunteer, Both
         public string? Phone { get; set; }
         public string? Skills { get; set; }
     }

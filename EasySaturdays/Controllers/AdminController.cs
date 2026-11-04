@@ -143,6 +143,28 @@ namespace EasySaturdays.Controllers
             return RedirectToAction("Index");
         }
 
+        //Admin requests to super admin for approval
+        [HttpPost]
+        public IActionResult RequestAdminAction(string actionType, string targetId = null, string newEmail = null)
+        {
+            var adminId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value);
+
+            var request = new AdminRequest
+            {
+                RequestedByUserId = adminId,
+                ActionType = actionType,
+                TargetAdminId = targetId,
+                NewAdminEmail = newEmail,
+                Status = "Pending"
+            };
+
+            _context.AdminRequests.Add(request);
+            _context.SaveChanges();
+
+            TempData["Success"] = "Request sent to Super Admin for approval.";
+            return RedirectToAction("Index");
+        }
+
         // 8. VIEW REPORTS (GET)
         [HttpGet]
         public IActionResult ViewReports()

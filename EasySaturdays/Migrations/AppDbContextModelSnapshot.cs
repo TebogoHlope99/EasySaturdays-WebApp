@@ -22,6 +22,41 @@ namespace EasySaturdays.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("EasySaturdays.Models.AdminRequest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ActionType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NewAdminEmail")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("RequestedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("RequestedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TargetAdminId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RequestedByUserId");
+
+                    b.ToTable("AdminRequests");
+                });
+
             modelBuilder.Entity("EasySaturdays.Models.Campaign", b =>
                 {
                     b.Property<int>("Id")
@@ -207,6 +242,17 @@ namespace EasySaturdays.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("VolunteerShifts");
+                });
+
+            modelBuilder.Entity("EasySaturdays.Models.AdminRequest", b =>
+                {
+                    b.HasOne("EasySaturdays.Models.User", "RequestedByUser")
+                        .WithMany()
+                        .HasForeignKey("RequestedByUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("RequestedByUser");
                 });
 
             modelBuilder.Entity("EasySaturdays.Models.Donation", b =>

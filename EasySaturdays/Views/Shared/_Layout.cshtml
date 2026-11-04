@@ -10,14 +10,14 @@
     <link rel="stylesheet" href="~/EasySaturdays.styles.css" asp-append-version="true" />
 
     <style>
-        .user-badge {
-            transition: all 0.2s ease;
-        }
+            .user-badge {
+                transition: all 0.2s ease;
+            }
 
-        .user-badge:hover {
-            background: rgba(255, 255, 255, 0.25) !important;
-            transform: scale(1.02);
-        }
+                .user-badge:hover {
+                    background: rgba(255, 255, 255, 0.25) !important;
+                    transform: scale(1.02);
+                }
     </style>
 </head>
 <body>
@@ -33,17 +33,22 @@
                         <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Index">Home</a></li>
                         <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Campaigns">Campaigns</a></li>
 
-                        <li class="nav-item">
-                            <a asp-controller="Account" asp-action="Profile" class="user-badge text-decoration-none" title="Edit Profile">
-                                @User.Identity.Name
-                                <span class="role-tag">@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</span>
-                            </a>
-                        </li>
-
                         @if (User.Identity.IsAuthenticated)
                         {
-                            
-                            @if (User.IsInRole("Admin"))
+                            <!-- Profile Badge -->
+                            <li class="nav-item">
+                                <a asp-controller="Account" asp-action="Profile" class="user-badge text-decoration-none" title="Edit Profile">
+                                    @User.Identity.Name
+                                    <span class="role-tag">@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</span>
+                                </a>
+                            </li>
+
+                            <!-- Dashboard Links based on Role -->
+                            @if (User.IsInRole("SuperAdmin"))
+                            {
+                                <li class="nav-item"><a class="nav-link text-warning fw-bold" asp-controller="SuperAdmin" asp-action="Index">👑 Super Admin Panel</a></li>
+                            }
+                            else if (User.IsInRole("Admin"))
                             {
                                 <li class="nav-item"><a class="nav-link text-warning fw-bold" asp-controller="Admin" asp-action="Index">Dashboard</a></li>
                             }
@@ -52,6 +57,7 @@
                                 <li class="nav-item"><a class="nav-link" asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
                             }
 
+                            <!-- Logout Button -->
                             <li class="nav-item"><a class="btn btn-outline-light btn-sm rounded-pill px-3" asp-controller="Account" asp-action="Logout">Logout</a></li>
                         }
                         else

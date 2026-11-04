@@ -197,6 +197,54 @@
         }
     </div>
 </div>
+<!-- ADMIN MANAGEMENT REQUESTS SECTION -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <div class="admin-header">
+            <h5 class="fw-bold mb-0">🛡️ Admin Management Requests</h5>
+            <small class="text-muted">Requires Super Admin Approval</small>
+        </div>
+
+        <div class="row mt-3">
+            <!-- Request New Admin -->
+            <div class="col-md-6 mb-3">
+                <div class="p-3 bg-light rounded border">
+                    <h6 class="fw-bold text-success mb-3">➕ Request New Admin</h6>
+                    <form asp-action="RequestAdminAction" method="post">
+                        <input type="hidden" name="actionType" value="CreateAdmin" />
+                        <div class="input-group">
+                            <input type="email" name="newEmail" class="form-control" placeholder="Enter new admin email" required />
+                            <button type="submit" class="btn btn-success px-4">Submit Request</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Request Delete Admin -->
+            <div class="col-md-6 mb-3">
+                <div class="p-3 bg-light rounded border">
+                    <h6 class="fw-bold text-danger mb-3">🗑️ Request Remove Admin</h6>
+                    <form asp-action="RequestAdminAction" method="post">
+                        <input type="hidden" name="actionType" value="DeleteAdmin" />
+                        <div class="input-group">
+                            <select name="targetId" class="form-select" required>
+                                <option value="">Select Admin to Remove...</option>
+                                @foreach (var user in ViewBag.Users as List<EasySaturdays.Models.User>)
+                                {
+                                    if (user.Role == "Admin")
+                                    {
+                                        <option value="@user.Id">@user.FirstName @user.LastName (@user.Email)</option>
+                                    }
+                                }
+                            </select>
+                            <button type="submit" class="btn btn-danger px-4">Submit Request</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- MANAGE CAMPAIGNS -->
 <div class="card shadow-sm border-0 mb-4">

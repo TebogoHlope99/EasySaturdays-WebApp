@@ -22,13 +22,9 @@ namespace EasySaturdays.Controllers
         [HttpPost("login")]
         public IActionResult Login([FromBody] LoginRequest loginData)
         {
-            if (loginData == null || string.IsNullOrEmpty(loginData.Email) || string.IsNullOrEmpty(loginData.Password))
-                return BadRequest(new { message = "Email and password are required." });
-
             var user = _context.Users.FirstOrDefault(u => u.Email.ToLower() == loginData.Email.ToLower());
             if (user != null && BCrypt.Net.BCrypt.Verify(loginData.Password, user.PasswordHash))
                 return Ok(new { id = user.Id, firstName = user.FirstName, lastName = user.LastName, email = user.Email, role = user.Role, phone = user.Phone, skills = user.Skills });
-
             return Unauthorized(new { message = "Invalid email or password" });
         }
 
@@ -53,6 +49,45 @@ namespace EasySaturdays.Controllers
             return Ok(new { message = "Registration successful!" });
         }
 
+        [HttpPost("donate")]
+        public IActionResult Donate([FromBody] DonateRequest donateData)
+        {
+            var campaign = _context.Campaigns.Find(donateData.CampaignId);
+            if (donateData.Amount < 50) return BadRequest(new { message = "Minimum donation is R50." });
+            campaign.RaisedAmount += donateData.Amount;
+            if (campaign.RaisedAmount >= campaign.GoalAmount) campaign.Status = "Ended";
+            _context.Donations.Add(new Donation { Amount = donateData.Amount, Method = donateData.Method, CampaignId = donateData.CampaignId, UserId = donateData.UserId });
+            _context.SaveChanges();
+            return Ok(new { message = "Donation successful!" });
+        }
+
+        // --- VOLUNTEER ENDPOINTS ---
+        [HttpPost("volunteer/signup")]
+        public IActionResult SignUpShift([FromBody] ShiftRequest shiftData)
+        {
+            bool hasShiftOnDate = _context.VolunteerShifts.Any(s => s.UserId == shiftData.UserId && s.Date.Date == shiftData.Date.Date);
+            if (hasShiftOnDate) return BadRequest(new { message = "You already have a shift scheduled for this day." });
+
+            _context.VolunteerShifts.Add(new VolunteerShift { UserId = shiftData.UserId, CampaignId = shiftData.CampaignId, Date = shiftData.Date, Time = shiftData.Time, Status = "Upcoming" });
+            _context.SaveChanges();
+            return Ok(new { message = "Shift registered!" });
+        }
+
+        [HttpPost("volunteer/cancel")]
+        public IActionResult CancelShift([FromBody] CancelShiftRequest cancelData)
+        {
+            var shift = _context.VolunteerShifts.FirstOrDefault(s => s.Id == cancelData.ShiftId && s.UserId == cancelData.UserId);
+            if (shift == null) return NotFound(new { message = "Shift not found." });
+
+            // Rule: Cannot cancel less than 24 hours before
+            if (shift.Date.Date <= DateTime.Today)
+                return BadRequest(new { message = "You cannot cancel a shift less than 24 hours before it starts." });
+
+            _context.VolunteerShifts.Remove(shift);
+            _context.SaveChanges();
+            return Ok(new { message = "Shift cancelled successfully." });
+        }
+
         [HttpGet("dashboard/{userId}")]
         public IActionResult GetDashboard(int userId)
         {
@@ -69,61 +104,7 @@ namespace EasySaturdays.Controllers
             });
         }
 
-        [HttpPost("profile/update")]
-        public IActionResult UpdateProfile([FromBody] UpdateProfileRequest profileData)
-        {
-            var user = _context.Users.Find(profileData.Id);
-            if (user == null) return NotFound();
-            user.FirstName = profileData.FirstName; user.LastName = profileData.LastName;
-            user.Phone = profileData.Phone; user.Skills = profileData.Skills;
-            _context.SaveChanges();
-            return Ok(new { message = "Profile updated!" });
-        }
-
-        [HttpPost("volunteer/signup")]
-        public IActionResult SignUpShift([FromBody] ShiftRequest shiftData)
-        {
-            bool hasShiftOnDate = _context.VolunteerShifts.Any(s => s.UserId == shiftData.UserId && s.Date.Date == shiftData.Date.Date);
-            if (hasShiftOnDate) return BadRequest(new { message = "You already have a shift scheduled for this day." });
-
-            _context.VolunteerShifts.Add(new VolunteerShift { UserId = shiftData.UserId, CampaignId = shiftData.CampaignId, Date = shiftData.Date, Time = shiftData.Time, Status = "Upcoming" });
-            _context.SaveChanges();
-            return Ok(new { message = "Shift registered!" });
-        }
-
-        [HttpPost("volunteer/cancel")]
-        public IActionResult CancelShift([FromBody] CancelShiftRequest cancelData)
-        {
-            var shift = _context.VolunteerShifts.FirstOrDefault(s => s.Id == cancelData.ShiftId && s.UserId == cancelData.UserId);
-            if (shift == null) return NotFound();
-            _context.VolunteerShifts.Remove(shift);
-            _context.SaveChanges();
-            return Ok(new { message = "Shift cancelled!" });
-        }
-
-        [HttpPost("donate")]
-        public IActionResult Donate([FromBody] DonateRequest donateData)
-        {
-            var campaign = _context.Campaigns.Find(donateData.CampaignId);
-            if (donateData.Amount < 50) return BadRequest(new { message = "Minimum donation is R50." });
-
-            campaign.RaisedAmount += donateData.Amount;
-            if (campaign.RaisedAmount >= campaign.GoalAmount) campaign.Status = "Ended";
-
-            _context.Donations.Add(new Donation { Amount = donateData.Amount, Method = donateData.Method, CampaignId = donateData.CampaignId, UserId = donateData.UserId });
-            _context.SaveChanges();
-            return Ok(new { message = "Donation successful!" });
-        }
-
-        // --- ADMIN ENDPOINTS ---
-        [HttpGet("admin/users")]
-        public IActionResult GetAllUsers() => Ok(_context.Users.Select(u => new { id = u.Id, firstName = u.FirstName, lastName = u.LastName, email = u.Email, role = u.Role }).ToList());
-
-        [HttpGet("admin/donations")]
-        public IActionResult GetAllDonations() => Ok(_context.Donations.Include(d => d.User).Include(d => d.Campaign).Select(d => new { id = d.Id, donorName = d.User.FirstName + " " + d.User.LastName, campaignTitle = d.Campaign.Title, amount = d.Amount, date = d.Date.ToString("yyyy-MM-dd"), method = d.Method }).ToList());
-
-        [HttpGet("admin/shifts")]
-        public IActionResult GetAllShifts() => Ok(_context.VolunteerShifts.Include(s => s.User).Include(s => s.Campaign).Select(s => new { id = s.Id, volunteerName = s.User.FirstName + " " + s.User.LastName, campaignTitle = s.Campaign.Title, date = s.Date.ToString("yyyy-MM-dd"), time = s.Time, status = s.Status }).ToList());
+        // --- ADMIN & SUPER ADMIN ENDPOINTS ---
 
         [HttpPost("admin/campaign/create")]
         public IActionResult CreateCampaign([FromBody] Campaign newCampaign)
@@ -133,20 +114,13 @@ namespace EasySaturdays.Controllers
             return Ok(new { message = "Campaign created!" });
         }
 
-        // --- THIS IS THE NEW EDIT ENDPOINT ---
         [HttpPost("admin/campaign/edit")]
         public IActionResult EditCampaign([FromBody] Campaign editCampaign)
         {
             var campaign = _context.Campaigns.Find(editCampaign.Id);
             if (campaign == null) return NotFound();
-
-            campaign.Title = editCampaign.Title;
-            campaign.Description = editCampaign.Description;
-            campaign.GoalAmount = editCampaign.GoalAmount;
-
-            // Auto-end if the new goal is less than what's already been raised
+            campaign.Title = editCampaign.Title; campaign.Description = editCampaign.Description; campaign.GoalAmount = editCampaign.GoalAmount;
             if (campaign.RaisedAmount >= campaign.GoalAmount) campaign.Status = "Ended";
-
             _context.SaveChanges();
             return Ok(new { message = "Campaign updated!" });
         }
@@ -159,12 +133,79 @@ namespace EasySaturdays.Controllers
             return Ok(new { message = "Campaign deleted." });
         }
 
+        [HttpGet("admin/users")]
+        public IActionResult GetAllUsers() => Ok(_context.Users.Select(u => new {
+            id = u.Id,
+            firstName = u.FirstName,
+            lastName = u.LastName,
+            email = u.Email,
+            role = u.Role
+        }).ToList());
+
         [HttpPost("admin/user/delete/{id}")]
         public IActionResult DeleteUser(int id)
         {
             var u = _context.Users.Find(id);
-            if (u != null && u.Role != "Admin") { _context.Users.Remove(u); _context.SaveChanges(); }
+            if (u != null && u.Role != "SuperAdmin" && u.Role != "Admin") { _context.Users.Remove(u); _context.SaveChanges(); }
             return Ok(new { message = "User deleted." });
+        }
+
+        // SUPER ADMIN: Create a request to manage admins
+        [HttpPost("superadmin/request")]
+        public IActionResult CreateAdminRequest([FromBody] AdminRequest request)
+        {
+            request.Status = "Pending";
+            request.RequestedAt = DateTime.Now;
+            _context.AdminRequests.Add(request);
+            _context.SaveChanges();
+            return Ok(new { message = "Request sent to Super Admin for approval." });
+        }
+
+        // SUPER ADMIN: View all requests
+        [HttpGet("superadmin/requests")]
+        public IActionResult GetAdminRequests()
+        {
+            var requests = _context.AdminRequests.Include(r => r.RequestedByUser).ToList();
+            return Ok(requests);
+        }
+
+        // SUPER ADMIN: Approve or Reject requests
+        [HttpPost("superadmin/process")]
+        public IActionResult ProcessAdminRequest([FromBody] ProcessRequest processData)
+        {
+            var request = _context.AdminRequests.Find(processData.RequestId);
+            if (request == null) return NotFound();
+
+            if (processData.IsApproved)
+            {
+                if (request.ActionType == "CreateAdmin" && !string.IsNullOrEmpty(request.NewAdminEmail))
+                {
+                    // Parse JSON (Simplified for demo)
+                    // In a real app, deserialize the JSON string into a RegisterRequest
+                    var newUser = new User
+                    {
+                        FirstName = "New",
+                        LastName = "Admin",
+                        Email = request.NewAdminEmail,
+                        Role = "Admin",
+                        PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin123!")
+                    };
+                    _context.Users.Add(newUser);
+                }
+                else if (request.ActionType == "DeleteAdmin" && !string.IsNullOrEmpty(request.TargetAdminId))
+                {
+                    var user = _context.Users.Find(int.Parse(request.TargetAdminId));
+                    if (user != null) _context.Users.Remove(user);
+                }
+                request.Status = "Approved";
+            }
+            else
+            {
+                request.Status = "Rejected";
+            }
+
+            _context.SaveChanges();
+            return Ok(new { message = $"Request {request.Status}." });
         }
 
         [HttpGet("admin/reports")]
@@ -185,6 +226,7 @@ namespace EasySaturdays.Controllers
         }
     }
 
+    // DTOs
     public class LoginRequest { 
         public string Email { get; set; } 
         public string Password { get; set; } 
@@ -198,15 +240,15 @@ namespace EasySaturdays.Controllers
         public string Phone { get; set; } 
         public string Skills { get; set; } 
     }
-    public class UpdateProfileRequest { 
-        public int Id { get; set; } 
-        public string FirstName { get; set; } 
-        public string LastName { get; set; } 
-        public string Phone { get; set; } 
-        public string Skills { get; set; } 
+    public class DonateRequest { 
+        public int UserId { get; set; } 
+        public int CampaignId { get; set; } 
+        public decimal Amount { get; set; } 
+        public string Method { get; set; } 
+        public string CardNumber { get; set; } 
     }
     public class ShiftRequest { 
-        public int UserId { get; set; }
+        public int UserId { get; set; } 
         public int CampaignId { get; set; } 
         public DateTime Date { get; set; } 
         public string Time { get; set; } 
@@ -215,11 +257,8 @@ namespace EasySaturdays.Controllers
         public int UserId { get; set; } 
         public int ShiftId { get; set; } 
     }
-    public class DonateRequest { 
-        public int UserId { get; set; } 
-        public int CampaignId { get; set; } 
-        public decimal Amount { get; set; } 
-        public string Method { get; set; } 
-        public string CardNumber { get; set; } 
+    public class ProcessRequest { 
+        public int RequestId { get; set; } 
+        public bool IsApproved { get; set; } 
     }
 }

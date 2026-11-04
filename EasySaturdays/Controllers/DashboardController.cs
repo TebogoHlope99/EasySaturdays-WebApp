@@ -14,10 +14,15 @@ namespace EasySaturdays.Controllers
 
         public IActionResult Index()
         {
-            // 1. Admin Redirect 
+            // 1. Admin/ SuperAdmin Redirect 
             if (User.IsInRole("Admin"))
             {
                 return RedirectToAction("Index", "Admin");
+            }
+
+            if (User.IsInRole("SuperAdmin"))
+            {
+                return RedirectToAction("Index", "SuperAdmin");
             }
 
             // 2. Get User Data
